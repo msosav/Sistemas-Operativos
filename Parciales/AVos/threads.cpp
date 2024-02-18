@@ -82,7 +82,7 @@ void multiplicarParaRotar(size_t startRow, size_t endRow, const double grados,
 
 vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, const int grados, const int numeroHilos, BMPHeader &header)
 {
-    vector<vector<Pixel>> matrizRotada(matrizPixeles[0].size(), vector<Pixel>(matrizPixeles.size()));
+    vector<vector<Pixel>> matrizRotada(matrizPixeles.size(), vector<Pixel>(matrizPixeles[0].size()));
     vector<thread> hilos;
     const size_t chunkSize = matrizPixeles.size() / numeroHilos;
     for (int i = 0; i < numeroHilos; ++i)
@@ -146,7 +146,7 @@ void escribirArchivoBMP(const char *nombreArchivo, const vector<vector<Pixel>> &
 int main(int argc, char *argv[])
 {
   BMPHeader headerImagenEntrada;
-  const int numeroHilos = 4;
+  const int numeroHilos = 8;
   vector<vector<Pixel>> matrizImagenEntrada = leerArchivoBMP(argv[1], headerImagenEntrada);
   vector<vector<Pixel>> matrizImagenSalida;
   if (string(argv[2]) == "Rotar")
