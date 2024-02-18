@@ -3,6 +3,7 @@
 #include <vector>
 #include <ctime>
 #include <chrono>
+#include <omp.h>
 
 using namespace std;
 
@@ -11,6 +12,7 @@ struct Pixel
   unsigned char red, green, blue;
 };
 
+#pragma pack(push, 1)
 struct BMPHeader
 {
   char signature[2];
@@ -30,6 +32,7 @@ struct BMPHeader
   int importantColors;
 };
 
+#pragma pack(pop)
 vector<vector<Pixel>> leerArchivoBMP(const char *nombreArchivo, BMPHeader &header)
 {
   ifstream archivo(nombreArchivo, ios::binary);
