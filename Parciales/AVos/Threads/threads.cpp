@@ -59,7 +59,8 @@ vector<vector<Pixel>> leerArchivoBMP(const char *nombreArchivo, BMPHeader &heade
 }
 
 void multiplicarParaRotar(size_t startRow, size_t endRow, const double grados,
-                          const vector<vector<Pixel>> &matrizPixeles, vector<vector<Pixel>> &matrizRotada)
+                          const vector<vector<Pixel>> &matrizPixeles,
+                          vector<vector<Pixel>> &matrizRotada)
 {
   double radianes = grados * M_PI / 180.0;
   double centroX = matrizPixeles[0].size() / 2.0;
@@ -79,7 +80,8 @@ void multiplicarParaRotar(size_t startRow, size_t endRow, const double grados,
   }
 }
 
-vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, const int grados, const int numeroHilos, BMPHeader &header)
+vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, const int grados,
+                                  const int numeroHilos, BMPHeader &header)
 {
   vector<vector<Pixel>> matrizRotada(matrizPixeles.size(), vector<Pixel>(matrizPixeles[0].size()));
   vector<thread> hilos;
@@ -88,7 +90,8 @@ vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, co
   {
     size_t startRow = i * chunkSize;
     size_t endRow = (i == numeroHilos - 1) ? matrizPixeles.size() : (i + 1) * chunkSize;
-    hilos.emplace_back(multiplicarParaRotar, startRow, endRow, grados, std::cref(matrizPixeles), std::ref(matrizRotada));
+    hilos.emplace_back(multiplicarParaRotar, startRow, endRow, grados, std::cref(matrizPixeles),
+                       std::ref(matrizRotada));
   }
   for (auto &thread : hilos)
   {
@@ -97,7 +100,8 @@ vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, co
   return matrizRotada;
 }
 
-void multiplicarParaEscalar(size_t startRow, size_t endRow, const vector<vector<Pixel>> &matrizPixeles, const int width, const int height, vector<vector<Pixel>> &matrizEscalada)
+void multiplicarParaEscalar(size_t startRow, size_t endRow, const vector<vector<Pixel>> &matrizPixeles,
+                            const int width, const int height, vector<vector<Pixel>> &matrizEscalada)
 {
   double centroX = width / 2.0;
   double centroY = height / 2.0;
@@ -117,7 +121,9 @@ void multiplicarParaEscalar(size_t startRow, size_t endRow, const vector<vector<
   }
 }
 
-vector<vector<Pixel>> escalarImagen(const vector<vector<Pixel>> &matrizPixeles, const int width, const int height, const int numeroHilos, BMPHeader &header)
+vector<vector<Pixel>> escalarImagen(const vector<vector<Pixel>> &matrizPixeles,
+                                    const int width, const int height, const int numeroHilos,
+                                    BMPHeader &header)
 {
   vector<vector<Pixel>> matrizEscalada(height, vector<Pixel>(width));
   vector<thread> hilos;
@@ -126,7 +132,8 @@ vector<vector<Pixel>> escalarImagen(const vector<vector<Pixel>> &matrizPixeles, 
   {
     size_t startRow = i * chunkSize;
     size_t endRow = (i == numeroHilos - 1) ? height : (i + 1) * chunkSize;
-    hilos.emplace_back(multiplicarParaEscalar, startRow, endRow, std::cref(matrizPixeles), width, height, std::ref(matrizEscalada));
+    hilos.emplace_back(multiplicarParaEscalar, startRow, endRow, std::cref(matrizPixeles), width,
+                       height, std::ref(matrizEscalada));
   }
   for (auto &thread : hilos)
   {
@@ -186,7 +193,8 @@ int main(int argc, char *argv[])
   {
     if (argc != 4)
     {
-      cerr << "Uso: " << argv[0] << " <nombreArchivo>" << argv[1] << " <Operacion (Rotar)>" << argv[2] << " <Medida (Grados)>";
+      cerr << "Uso: " << argv[0] << " <nombreArchivo>" << argv[1] << " <Operacion (Rotar)>"
+           << argv[2] << " <Medida (Grados)>";
       return 1;
     }
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -201,8 +209,8 @@ int main(int argc, char *argv[])
   {
     if (argc != 5)
     {
-      cerr << "Uso: " << argv[0] << " <nombreArchivo>" << argv[1] << " <Operacion (Escalar)>" << argv[2] << " <Medida (Width)>"
-           << argv[3] << " <Medida (Height)>" << endl;
+      cerr << "Uso: " << argv[0] << " <nombreArchivo>" << argv[1] << " <Operacion (Escalar)>"
+           << argv[2] << " <Medida (Width)>" << argv[3] << " <Medida (Height)>" << endl;
       return 1;
     }
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -215,8 +223,8 @@ int main(int argc, char *argv[])
   }
   else
   {
-    cerr << "Uso: " << argv[0] << " <nombreArchivo>" << argv[1] << " <Operacion (Rotar/Escalar)>" << argv[2] << " <Medida(Grados/Width)>"
-         << argv[3] << " <Height (si se va a escalar)>";
+    cerr << "Uso: " << argv[0] << " <nombreArchivo>" << argv[1] << " <Operacion (Rotar/Escalar)>"
+         << argv[2] << " <Medida(Grados/Width)>" << argv[3] << " <Height (si se va a escalar)>";
     return 1;
   }
   return 0;
