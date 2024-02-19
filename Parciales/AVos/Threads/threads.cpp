@@ -58,9 +58,8 @@ vector<vector<Pixel>> leerArchivoBMP(const char *nombreArchivo, BMPHeader &heade
   return matriz;
 }
 
-
 void multiplicarParaRotar(size_t startRow, size_t endRow, const double grados,
-                    const vector<vector<Pixel>> &matrizPixeles, vector<vector<Pixel>> &matrizRotada)
+                          const vector<vector<Pixel>> &matrizPixeles, vector<vector<Pixel>> &matrizRotada)
 {
   double radianes = grados * M_PI / 180.0;
   double centroX = matrizPixeles[0].size() / 2.0;
@@ -82,24 +81,58 @@ void multiplicarParaRotar(size_t startRow, size_t endRow, const double grados,
 
 vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, const int grados, const int numeroHilos, BMPHeader &header)
 {
-    vector<vector<Pixel>> matrizRotada(matrizPixeles.size(), vector<Pixel>(matrizPixeles[0].size()));
-    vector<thread> hilos;
-    const size_t chunkSize = matrizPixeles.size() / numeroHilos;
-    for (int i = 0; i < numeroHilos; ++i)
-    {
-        size_t startRow = i * chunkSize;
-        size_t endRow = (i == numeroHilos - 1) ? matrizPixeles.size() : (i + 1) * chunkSize;
-        hilos.emplace_back(multiplicarParaRotar, startRow, endRow, grados, std::cref(matrizPixeles), std::ref(matrizRotada));
-    }
-    for (auto &thread : hilos)
-    {
-        thread.join();
-    }
-    return matrizRotada;
+  vector<vector<Pixel>> matrizRotada(matrizPixeles.size(), vector<Pixel>(matrizPixeles[0].size()));
+  vector<thread> hilos;
+  const size_t chunkSize = matrizPixeles.size() / numeroHilos;
+  for (int i = 0; i < numeroHilos; ++i)
+  {
+    size_t startRow = i * chunkSize;
+    size_t endRow = (i == numeroHilos - 1) ? matrizPixeles.size() : (i + 1) * chunkSize;
+    hilos.emplace_back(multiplicarParaRotar, startRow, endRow, grados, std::cref(matrizPixeles), std::ref(matrizRotada));
+  }
+  for (auto &thread : hilos)
+  {
+    thread.join();
+  }
+  return matrizRotada;
 }
 
-vector<vector<Pixel>> escalarImagen(const vector<vector<Pixel>> &matrizPixeles, const int width, const int height, BMPHeader &header)
+void multiplicarParaEscalar(size_t startRow, size_t endRow, const vector<vector<Pixel>> &matrizPixeles, const int width, const int height, vector<vector<Pixel>> &matrizEscalada)
 {
+  double centroX = width / 2.0;
+  double centroY = height / 2.0;
+
+  for (size_t i = startRow; i < endRow; ++i)
+  {
+    for (size_t j = 0; j < width; ++j)
+    {
+      double x = j * (matrizPixeles[0].size() / static_cast<double>(width));
+      double y = i * (matrizPixeles.size() / static_cast<double>(height));
+
+      if (x >= 0 && x < matrizPixeles[0].size() && y >= 0 && y < matrizPixeles.size())
+      {
+        matrizEscalada[i][j] = matrizPixeles[static_cast<int>(y)][static_cast<int>(x)];
+      }
+    }
+  }
+}
+
+vector<vector<Pixel>> escalarImagen(const vector<vector<Pixel>> &matrizPixeles, const int width, const int height, const int numeroHilos, BMPHeader &header)
+{
+  vector<vector<Pixel>> matrizEscalada(height, vector<Pixel>(width));
+  vector<thread> hilos;
+  const size_t chunkSize = height / numeroHilos;
+  for (int i = 0; i < 8; ++i)
+  {
+    size_t startRow = i * chunkSize;
+    size_t endRow = (i == numeroHilos - 1) ? height : (i + 1) * chunkSize;
+    hilos.emplace_back(multiplicarParaEscalar, startRow, endRow, std::cref(matrizPixeles), width, height, std::ref(matrizEscalada));
+  }
+  for (auto &thread : hilos)
+  {
+    thread.join();
+  }
+  return matrizEscalada;
 }
 
 void escribirArchivoBMP(const char *nombreArchivo, const vector<vector<Pixel>> &matriz)
@@ -173,7 +206,7 @@ int main(int argc, char *argv[])
       return 1;
     }
     auto start_time = std::chrono::high_resolution_clock::now();
-    matrizImagenSalida = escalarImagen(matrizImagenEntrada, atoi(argv[3]), atoi(argv[4]), headerImagenEntrada);
+    matrizImagenSalida = escalarImagen(matrizImagenEntrada, atoi(argv[3]), atoi(argv[4]), numeroHilos, headerImagenEntrada);
     auto end_time = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
     cout << "Tiempo de ejecucion: " << duration << " ms" << endl;
