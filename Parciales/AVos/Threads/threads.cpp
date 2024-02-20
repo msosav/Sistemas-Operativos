@@ -63,14 +63,16 @@ void multiplicarParaRotar(size_t startRow, size_t endRow, const double grados,
                           vector<vector<Pixel>> &matrizRotada)
 {
   double radianes = grados * M_PI / 180.0;
-  double centroX = matrizPixeles[0].size() / 2.0;
-  double centroY = matrizPixeles.size() / 2.0;
+  double centroXOriginal = matrizPixeles[0].size() / 2.0;
+  double centroYOriginal = matrizPixeles.size() / 2.0;
+  double centroX = matrizRotada[0].size() / 2.0;
+  double centroY = matrizRotada.size() / 2.0;
   for (size_t i = startRow; i < endRow; ++i)
   {
-    for (size_t j = 0; j < matrizPixeles[0].size(); ++j)
+    for (size_t j = 0; j < matrizRotada[0].size(); ++j)
     {
-      double x = cos(radianes) * (j - centroX) - sin(radianes) * (i - centroY) + centroX;
-      double y = sin(radianes) * (j - centroX) + cos(radianes) * (i - centroY) + centroY;
+      double x = (j - centroX) * cos(radianes) - (i - centroY) * sin(radianes) + centroXOriginal;
+      double y = (j - centroX) * sin(radianes) + (i - centroY) * cos(radianes) + centroYOriginal;
 
       if (x >= 0 && x < matrizPixeles[0].size() && y >= 0 && y < matrizPixeles.size())
       {
@@ -83,13 +85,17 @@ void multiplicarParaRotar(size_t startRow, size_t endRow, const double grados,
 vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, const int grados,
                                   const int numeroHilos, BMPHeader &header)
 {
-  vector<vector<Pixel>> matrizRotada(matrizPixeles.size(), vector<Pixel>(matrizPixeles[0].size()));
+  double radianes = grados * M_PI / 180.0;
+  double centroX = matrizPixeles[0].size() / 2.0;
+  double centroY = matrizPixeles.size() / 2.0;
+  double radio = sqrt(centroX * centroX + centroY * centroY);
+  vector<vector<Pixel>>   matrizRotada = vector<vector<Pixel>>(static_cast<int>(2 * radio), vector<Pixel>(static_cast<int>(2 * radio)));
   vector<thread> hilos;
-  const size_t chunkSize = matrizPixeles.size() / numeroHilos;
+  const size_t chunkSize = matrizRotada.size() / numeroHilos;
   for (int i = 0; i < numeroHilos; ++i)
   {
     size_t startRow = i * chunkSize;
-    size_t endRow = (i == numeroHilos - 1) ? matrizPixeles.size() : (i + 1) * chunkSize;
+    size_t endRow = (i == numeroHilos - 1) ? matrizRotada.size() : (i + 1) * chunkSize;
     hilos.emplace_back(multiplicarParaRotar, startRow, endRow, grados, std::cref(matrizPixeles),
                        std::ref(matrizRotada));
   }
