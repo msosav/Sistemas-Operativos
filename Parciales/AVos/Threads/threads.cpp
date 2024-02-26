@@ -89,7 +89,7 @@ vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, co
   double centroX = matrizPixeles[0].size() / 2.0;
   double centroY = matrizPixeles.size() / 2.0;
   double radio = sqrt(centroX * centroX + centroY * centroY);
-  vector<vector<Pixel>>   matrizRotada = vector<vector<Pixel>>(static_cast<int>(2 * radio), vector<Pixel>(static_cast<int>(2 * radio)));
+  vector<vector<Pixel>> matrizRotada = vector<vector<Pixel>>(static_cast<int>(2 * radio), vector<Pixel>(static_cast<int>(2 * radio)));
   vector<thread> hilos;
   const size_t chunkSize = matrizRotada.size() / numeroHilos;
   for (int i = 0; i < numeroHilos; ++i)
@@ -203,13 +203,20 @@ int main(int argc, char *argv[])
            << argv[2] << " <Medida (Grados)>";
       return 1;
     }
-    auto start_time = std::chrono::high_resolution_clock::now();
-    matrizImagenSalida = rotarImagen(matrizImagenEntrada, atoi(argv[3]), numeroHilos, headerImagenEntrada);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    cout << "Tiempo de ejecucion: " << duration << " ms" << endl;
+    auto tiempoDeEjecucionPromedio = 0;
+    for (size_t i = 0; i < 100; i++)
+    {
+      auto start_time = std::chrono::high_resolution_clock::now();
+      matrizImagenSalida = rotarImagen(matrizImagenEntrada, atoi(argv[3]), numeroHilos, headerImagenEntrada);
+      auto end_time = std::chrono::high_resolution_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+      tiempoDeEjecucionPromedio += duration;
+    }
+    tiempoDeEjecucionPromedio /= 100;
+    cout << "Tiempo de ejecucion promedio despues de 100 iteraciones (hilos): "
+         << tiempoDeEjecucionPromedio << " ms" << endl;
 
-    escribirArchivoBMP("rotada.bmp", matrizImagenSalida);
+    escribirArchivoBMP("Imagenes/Rotadas/rotada_hilos.bmp", matrizImagenSalida);
   }
   else if (string(argv[2]) == "Escalar")
   {
@@ -219,13 +226,20 @@ int main(int argc, char *argv[])
            << argv[2] << " <Medida (Width)>" << argv[3] << " <Medida (Height)>" << endl;
       return 1;
     }
-    auto start_time = std::chrono::high_resolution_clock::now();
-    matrizImagenSalida = escalarImagen(matrizImagenEntrada, atoi(argv[3]), atoi(argv[4]), numeroHilos, headerImagenEntrada);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    cout << "Tiempo de ejecucion: " << duration << " ms" << endl;
+    auto tiempoDeEjecucionPromedio = 0;
+    for (size_t i = 0; i < 100; i++)
+    {
+      auto start_time = std::chrono::high_resolution_clock::now();
+      matrizImagenSalida = escalarImagen(matrizImagenEntrada, atoi(argv[3]), atoi(argv[4]), numeroHilos, headerImagenEntrada);
+      auto end_time = std::chrono::high_resolution_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+      tiempoDeEjecucionPromedio += duration;
+    }
+    tiempoDeEjecucionPromedio /= 100;
+    cout << "Tiempo de ejecucion promedio despues de 100 iteraciones (hilos): "
+         << tiempoDeEjecucionPromedio << " ms" << endl;
 
-    escribirArchivoBMP("escalada.bmp", matrizImagenSalida);
+    escribirArchivoBMP("Imagenes/Escaladas/escalada_hilos.bmp", matrizImagenSalida);
   }
   else
   {

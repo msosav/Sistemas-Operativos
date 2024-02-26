@@ -166,13 +166,20 @@ int main(int argc, char *argv[])
       cerr << "Uso: " << argv[0] << " <nombreArchivo>" << argv[1] << " <Operacion (Rotar)>" << argv[2] << " <Medida (Grados)>";
       return 1;
     }
-    auto start_time = std::chrono::high_resolution_clock::now();
-    matrizImagenSalida = rotarImagen(matrizImagenEntrada, atoi(argv[3]), headerImagenEntrada);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    cout << "Tiempo de ejecucion: " << duration << " ms" << endl;
+    auto tiempoDeEjecucionPromedio = 0;
+    for (int i = 0; i < 100; i++)
+    {
+      auto inicio = std::chrono::high_resolution_clock::now();
+      matrizImagenSalida = rotarImagen(matrizImagenEntrada, atoi(argv[3]), headerImagenEntrada);
+      auto fin = std::chrono::high_resolution_clock::now();
+      auto duracion = std::chrono::duration_cast<std::chrono::milliseconds>(fin - inicio).count();
+      tiempoDeEjecucionPromedio += duracion;
+    }
+    tiempoDeEjecucionPromedio /= 100;
+    cout << "Tiempo de ejecucion promedio despues de 100 iteraciones (secuencial): "
+         << tiempoDeEjecucionPromedio << " ms" << endl;
 
-    escribirArchivoBMP("rotada.bmp", matrizImagenSalida);
+    escribirArchivoBMP("Imagenes/Rotadas/rotada_secuencial.bmp", matrizImagenSalida);
   }
   else if (string(argv[2]) == "Escalar")
   {
@@ -182,13 +189,20 @@ int main(int argc, char *argv[])
            << argv[3] << " <Medida (Height)>" << endl;
       return 1;
     }
-    auto start_time = std::chrono::high_resolution_clock::now();
-    matrizImagenSalida = escalarImagen(matrizImagenEntrada, atoi(argv[3]), atoi(argv[4]), headerImagenEntrada);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    cout << "Tiempo de ejecucion: " << duration << " ms" << endl;
+    auto tiempoDeEjecucionPromedio = 0;
+    for (int i = 0; i < 100; i++)
+    {
+      auto inicio = std::chrono::high_resolution_clock::now();
+      matrizImagenSalida = escalarImagen(matrizImagenEntrada, atoi(argv[3]), atoi(argv[4]), headerImagenEntrada);
+      auto fin = std::chrono::high_resolution_clock::now();
+      auto duracion = std::chrono::duration_cast<std::chrono::milliseconds>(fin - inicio).count();
+      tiempoDeEjecucionPromedio += duracion;
+    }
+    tiempoDeEjecucionPromedio /= 100;
+    cout << "Tiempo de ejecucion promedio despues de 100 iteraciones (secuencial): "
+         << tiempoDeEjecucionPromedio << " ms" << endl;
 
-    escribirArchivoBMP("escalada.bmp", matrizImagenSalida);
+    escribirArchivoBMP("Imagenes/Escaladas/escalada_secuencial.bmp", matrizImagenSalida);
   }
   else
   {

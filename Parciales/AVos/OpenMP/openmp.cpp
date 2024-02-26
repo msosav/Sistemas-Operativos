@@ -63,12 +63,12 @@ vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, co
   double centroXOriginal = matrizPixeles[0].size() / 2.0;
   double centroYOriginal = matrizPixeles.size() / 2.0;
   double radio = sqrt(centroXOriginal * centroXOriginal + centroYOriginal * centroYOriginal);
-  
+
   vector<vector<Pixel>> matrizRotada(static_cast<int>(2 * radio), vector<Pixel>(static_cast<int>(2 * radio)));
   double centroXNuevo = matrizRotada[0].size() / 2.0;
   double centroYNuevo = matrizRotada.size() / 2.0;
 
-  #pragma omp parallel for
+#pragma omp parallel for
   for (size_t i = 0; i < matrizRotada.size(); ++i)
   {
     for (size_t j = 0; j < matrizRotada[0].size(); ++j)
@@ -77,7 +77,6 @@ vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, co
       double y = (j - centroXNuevo) * sin(radianes) + (i - centroYNuevo) * cos(radianes) + centroYOriginal;
       if (x >= 0 && x < matrizPixeles[0].size() && y >= 0 && y < matrizPixeles.size())
       {
-  #pragma omp atomic      
         matrizRotada[i][j] = matrizPixeles[static_cast<int>(y)][static_cast<int>(x)];
       }
     }
@@ -85,14 +84,13 @@ vector<vector<Pixel>> rotarImagen(const vector<vector<Pixel>> &matrizPixeles, co
   return matrizRotada;
 }
 
-
 vector<vector<Pixel>> escalarImagen(const vector<vector<Pixel>> &matrizPixeles, const int width, const int height, BMPHeader &header)
 {
   double centroX = width / 2.0;
   double centroY = height / 2.0;
   vector<vector<Pixel>> matrizEscalada(height, vector<Pixel>(width));
 
-  #pragma omp parallel for 
+#pragma omp parallel for
   for (size_t i = 0; i < height; ++i)
   {
     for (size_t j = 0; j < width; ++j)
@@ -102,7 +100,6 @@ vector<vector<Pixel>> escalarImagen(const vector<vector<Pixel>> &matrizPixeles, 
 
       if (x >= 0 && x < matrizPixeles[0].size() && y >= 0 && y < matrizPixeles.size())
       {
-  #pragma omp atomic    
         matrizEscalada[i][j] = matrizPixeles[static_cast<int>(y)][static_cast<int>(x)];
       }
     }
@@ -165,13 +162,20 @@ int main(int argc, char *argv[])
       cerr << "Uso: " << argv[0] << " <nombreArchivo>" << argv[1] << " <Operacion (Rotar)>" << argv[2] << " <Medida (Grados)>";
       return 1;
     }
-    auto start_time = std::chrono::high_resolution_clock::now();
-    matrizImagenSalida = rotarImagen(matrizImagenEntrada, atoi(argv[3]), headerImagenEntrada);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    cout << "Tiempo de ejecucion: " << duration << " ms" << endl;
+    auto tiempoDeEjecucionPromedio = 0;
+    for (size_t i = 0; i < 100; i++)
+    {
+      auto inicio = std::chrono::high_resolution_clock::now();
+      matrizImagenSalida = rotarImagen(matrizImagenEntrada, atoi(argv[3]), headerImagenEntrada);
+      auto fin = std::chrono::high_resolution_clock::now();
+      auto duracion = std::chrono::duration_cast<std::chrono::milliseconds>(fin - inicio).count();
+      tiempoDeEjecucionPromedio += duracion;
+    }
+    tiempoDeEjecucionPromedio /= 100;
+    cout << "Tiempo de ejecucion promedio despues de 100 iteraciones (openmp): "
+         << tiempoDeEjecucionPromedio << " ms" << endl;
 
-    escribirArchivoBMP("rotada.bmp", matrizImagenSalida);
+    escribirArchivoBMP("Imagenes/Rotadas/rotada_openmp.bmp", matrizImagenSalida);
   }
   else if (string(argv[2]) == "Escalar")
   {
@@ -181,13 +185,20 @@ int main(int argc, char *argv[])
            << argv[3] << " <Medida (Height)>" << endl;
       return 1;
     }
-    auto start_time = std::chrono::high_resolution_clock::now();
-    matrizImagenSalida = escalarImagen(matrizImagenEntrada, atoi(argv[3]), atoi(argv[4]), headerImagenEntrada);
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-    cout << "Tiempo de ejecucion: " << duration << " ms" << endl;
+    auto tiempoDeEjecucionPromedio = 0;
+    for (size_t i = 0; i < 100; i++)
+    {
+      auto inicio = std::chrono::high_resolution_clock::now();
+      matrizImagenSalida = escalarImagen(matrizImagenEntrada, atoi(argv[3]), atoi(argv[4]), headerImagenEntrada);
+      auto fin = std::chrono::high_resolution_clock::now();
+      auto duracion = std::chrono::duration_cast<std::chrono::milliseconds>(fin - inicio).count();
+      tiempoDeEjecucionPromedio += duracion;
+    }
+    tiempoDeEjecucionPromedio /= 100;
+    cout << "Tiempo de ejecucion promedio despues de 100 iteraciones (openmp): "
+         << tiempoDeEjecucionPromedio << " ms" << endl;
 
-    escribirArchivoBMP("escalada.bmp", matrizImagenSalida);
+    escribirArchivoBMP("Imagenes/Escaladas/escalada_openmp.bmp", matrizImagenSalida);
   }
   else
   {
